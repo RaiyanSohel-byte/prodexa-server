@@ -27,6 +27,7 @@ async function run() {
     //products api
     app.post("/products", async (req, res) => {
       const product = req.body;
+      req.body.postedAt = new Date().toLocaleString();
       const result = await productsCollection.insertOne(product);
       res.send(result);
     });
@@ -34,6 +35,15 @@ async function run() {
       const result = await productsCollection.find().toArray();
       res.send(result);
     });
+    app.get("/latestProducts", async (req, res) => {
+      const result = await productsCollection
+        .find()
+        .sort({ postedAt: -1 })
+        .limit(6)
+        .toArray();
+      res.send(result);
+    });
+
     app.get("/products/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -44,6 +54,25 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await productsCollection.deleteOne(query);
+      res.send(result);
+    });
+    app.patch("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedProduct = req.body;
+      const query = { _id: new ObjectId(id) };
+      const update = {
+        $set: updatedProduct,
+      };
+      const result = await productsCollection.updateOne(query, update);
+      res.send(result);
+    });
+
+    //search
+    app.get("/search", async (req, res) => {
+      const searchText = req.query.searchText;
+      const result = await productsCollection
+        .find({ name: { $regex: searchText, $options: "i" } })
+        .toArray();
       res.send(result);
     });
 
