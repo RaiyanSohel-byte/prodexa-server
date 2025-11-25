@@ -32,7 +32,12 @@ async function run() {
       res.send(result);
     });
     app.get("/products", async (req, res) => {
-      const result = await productsCollection.find().toArray();
+      const email = req.query.email;
+      const query = {};
+      if (email) {
+        query["postedBy.email"] = email;
+      }
+      const result = await productsCollection.find(query).toArray();
       res.send(result);
     });
     app.get("/latestProducts", async (req, res) => {
